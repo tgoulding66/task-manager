@@ -1,12 +1,16 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const cors = require('cors'); 
 
 dotenv.config();
 const app = express();
 
 // Middleware
 app.use(express.json());
+
+// Allow React to access the backend
+app.use(cors({ origin: 'http://localhost:5173' })); 
 
 // Routes
 // This is a POST request that registers a new user.
