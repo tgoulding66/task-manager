@@ -38,6 +38,32 @@ const getProjects = async (req, res) => {
   }
 };
 
+// Get a project by id
+// This is a GET request that gets a project by id.
+// It takes the project id from the request params.
+// It then finds the project with the given id.
+// It then returns the project.
+
+const getProjectById = async (req, res) => {
+  try {
+    const project = await Project.findOne({
+      _id: req.params.id,
+      user: req.user.id,
+    });
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    res.status(200).json(project);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to fetch project' });
+  }
+};
+
+
+
 // Update a project
 // This is a PUT request that updates a project.
 // It takes the project id from the request params.
@@ -88,6 +114,7 @@ const updateProject = async (req, res) => {
     createProject,
     getProjects,
     updateProject,
-    deleteProject
+    deleteProject,
+    getProjectById
   };
   

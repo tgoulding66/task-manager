@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import { Navbar, Nav, Container } from 'react-bootstrap';
 import { useAuth } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
+import ProjectDetails from './pages/ProjectDetails';  
 
 function App() {
   const { isAuthenticated, logout } = useAuth();
@@ -27,7 +28,7 @@ function App() {
       <Container className="mt-4">
         <Routes>
           <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-          {/*<Route path="/" element={<Dashboard />} />*/}  
+          <Route path="/projects/:id" element={<PrivateRoute><ProjectDetails /></PrivateRoute>} />  
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Routes>

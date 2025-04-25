@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { createProject, getProjects, updateProject, deleteProject } = require('../controllers/projectController');
+const { createProject, getProjects, updateProject, deleteProject, getProjectById } = require('../controllers/projectController');
 // This is a middleware that protects routes.
 // It takes the request, response, and next function as arguments.
 // It then checks if the authorization header is present and if it starts with 'Bearer '.
@@ -32,6 +32,13 @@ router.get('/', protect, getProjects);
 // It then returns the updated project.
 
 router.put('/:id', protect, updateProject);
+
+// This is a GET request that gets a project by id.
+// It takes the project id from the request params.
+// It then finds the project with the given id.
+// It then returns the project.
+
+router.get('/:id', protect, getProjectById);
 
 // This is a DELETE request that deletes a project.
 // It takes the project id from the request params.

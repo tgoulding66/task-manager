@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { createTask, getTasksByProject, updateTask, deleteTask } = require('../controllers/taskController');
+const { createTask, getTasks, updateTask, deleteTask } = require('../controllers/taskController');
+
 // This is a middleware that protects routes.
 // It takes the request, response, and next function as arguments.
 // It then checks if the authorization header is present and if it starts with 'Bearer '.
@@ -23,7 +24,7 @@ router.post('/', protect, createTask);
 // It then gets all tasks for the project with the given id.
 // It then returns the tasks.
 
-router.get('/:projectId', protect, getTasksByProject);
+router.get('/', protect, getTasks);
 
 // This is a PUT request that updates a task.   
 // It takes the task id from the request params.
@@ -39,5 +40,14 @@ router.put('/:id', protect, updateTask);
 // It then returns a message indicating that the task has been deleted.     
 
 router.delete('/:id', protect, deleteTask); 
+
+// This is a GET request that gets a task by id.
+// It takes the task id from the request params.
+// It then gets the task with the given id.
+// It then returns the task.
+
+//router.get('/:id', protect, getTaskById);
+
+
 
 module.exports = router;

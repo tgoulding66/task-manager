@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Card, Container, Row, Col } from 'react-bootstrap';
 import { Form, Button } from 'react-bootstrap';
+import TaskList from '../components/TaskList';  
+import { Trash } from 'react-bootstrap-icons';
+import { Link } from 'react-router-dom';  
 
 function Dashboard() {
   const [projects, setProjects] = useState([]);
@@ -23,6 +26,18 @@ function Dashboard() {
     fetchProjects();
   }, []);
 
+    const handleDeleteProject = async (projectId) => {
+      if (!window.confirm('Are you sure you want to delete this project?')) return;
+    
+      try {
+        await api.delete(`/projects/${projectId}`);
+        setProjects((prev) => prev.filter((project) => project._id !== projectId));
+      } catch (err) {
+        console.error('Error deleting project:', err);
+        alert('Failed to delete project.');
+      }
+    };
+    
   return (
     <Container className="mt-4">
       <h2 className="mb-4">Your Projects</h2>
@@ -78,8 +93,27 @@ function Dashboard() {
           <Col md={4} key={project._id} className="mb-4">
             <Card>
               <Card.Body>
-                <Card.Title>{project.name}</Card.Title>
-                <Card.Text>{project.description || 'No description provided.'}</Card.Text>
+                <div className="d-flex justify-content-between align-items-center">
+                  <Card.Title>
+                    <Link to={`/projects/${project._id}`} className="text-decoration-none">
+                      {project.name}
+                    </Link>
+                  </Card.Title>
+
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => handleDeleteProject(project._id)}
+                  >
+                    <Trash size={16} />
+                  </Button>
+                </div>
+
+                <Card.Text>
+                  {project.description || 'No description provided.'}
+                </Card.Text>
+
+                {/* <TaskList projectId={project._id} /> */}
               </Card.Body>
             </Card>
           </Col>
