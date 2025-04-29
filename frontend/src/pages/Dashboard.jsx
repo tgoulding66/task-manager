@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Card, Container, Row, Col } from 'react-bootstrap';
-import { Form, Button } from 'react-bootstrap';
-import TaskList from '../components/TaskList';  
+//import TaskList from '../components/TaskList';  
 import { Trash } from 'react-bootstrap-icons';
 import { Link } from 'react-router-dom';  
+import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
+
 
 function Dashboard() {
   const [projects, setProjects] = useState([]);
@@ -40,57 +40,67 @@ function Dashboard() {
     
   return (
     <Container className="mt-4">
-      <h2 className="mb-4">Your Projects</h2>
+      <h1 className="text-center mb-4">Your Projects</h1>
+      <hr className="mb-4" />
       {error && <p className="text-danger">{error}</p>}
       
-      <Form
-        onSubmit={async (e) => {
-            e.preventDefault();
-            if (!newProjectName) return;
+      <Row className="justify-content-center mb-4">
+       <Col xs={12} md={8} lg={6}>
+        <Card className="mb-4 shadow-sm">
+          <Card.Body>
+            <Form
+              onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!newProjectName) return;
 
-            try {
-            const { data } = await api.post('/projects', {
-                name: newProjectName,
-                description: newProjectDesc,
-            });
-            setProjects([...projects, data]);
-            setNewProjectName('');
-            setNewProjectDesc('');
-            } catch (err) {
-            console.error('Create project error:', err);
-            setError('Failed to create project.');
-            }
-        }}
-        className="mb-4"
-        >
-        <Form.Group className="mb-2">
-            <Form.Label>Project Name</Form.Label>
-            <Form.Control
-            type="text"
-            value={newProjectName}
-            onChange={(e) => setNewProjectName(e.target.value)}
-            placeholder="Enter project name"
-            required
-            />
-        </Form.Group>
+                  try {
+                  const { data } = await api.post('/projects', {
+                      name: newProjectName,
+                      description: newProjectDesc,
+                  });
+                  setProjects([...projects, data]);
+                  setNewProjectName('');
+                  setNewProjectDesc('');
+                  } catch (err) {
+                  console.error('Create project error:', err);
+                  setError('Failed to create project.');
+                  }
+              }}
+              className="mb-4"
+              >
+              <Form.Group className="mb-2">
+                  <Form.Label>Project Name</Form.Label>
+                  <Form.Control
+                  type="text"
+                  value={newProjectName}
+                  onChange={(e) => setNewProjectName(e.target.value)}
+                  placeholder="Enter project name"
+                  required
+                  />
+              </Form.Group>
 
-        <Form.Group className="mb-2">
-            <Form.Label>Description</Form.Label>
-            <Form.Control
-            type="text"
-            value={newProjectDesc}
-            onChange={(e) => setNewProjectDesc(e.target.value)}
-            placeholder="Optional description"
-            />
-        </Form.Group>
+              <Form.Group className="mb-2">
+                  <Form.Label>Description</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    value={newProjectDesc}
+                    onChange={(e) => setNewProjectDesc(e.target.value)}
+                    placeholder="Optional project description"
+                    style={{ resize: 'vertical' }} // allow user to stretch it vertically if needed
+                  />
+              </Form.Group>
 
-  <Button type="submit" variant="success">Add Project</Button>
-</Form>
+              <Button type="submit" variant="success">Add Project</Button>
+            </Form>
+          </Card.Body>
+        </Card>
+      </Col>
+      </Row>
 
-
-      <Row>
+      <Row xs={1} md={2} lg={3} className="g-4">
         {projects.map((project) => (
-          <Col md={4} key={project._id} className="mb-4">
+          <Col key={project._id}>
             <Card>
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-center">

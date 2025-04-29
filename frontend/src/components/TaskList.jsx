@@ -1,21 +1,28 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Form, Button, ListGroup, Spinner, Row, Col } from 'react-bootstrap';
+import { Form, Button, ListGroup, Spinner, Row, Col, Card } from 'react-bootstrap';
 import { Trash } from 'react-bootstrap-icons'; // Add this if you're using react-bootstrap-icons
-
-
-
+import { useToast } from '../context/ToastContext';
+import { Badge } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 function TaskList({ projectId }) {
   const [tasks, setTasks] = useState([]);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTask, setNewTask] = useState({
+    title: '',
+    dueDate: '',
+    priority: 'Medium',
+    });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [editTaskId, setEditTaskId] = useState(null);
   const [editTaskTitle, setEditTaskTitle] = useState('');
   const [highlightTaskId, setHighlightTaskId] = useState(null);
+  const { showToast } = useToast();
+  const [sortOption, setSortOption] = useState('dueDate'); // default sort
 
-
+  
   useEffect(() => {
     if (!projectId) return;
 
@@ -37,45 +44,56 @@ function TaskList({ projectId }) {
 
   const handleAddTask = async (e) => {
     e.preventDefault();
-    if (!newTaskTitle.trim()) return;
-
-    try {
-      const { data } = await api.post('/tasks', {
-        title: newTaskTitle,
-        projectId,
-      });
-      setTasks([...tasks, data]);
-      setNewTaskTitle('');
-    } catch (err) {
-      console.error('Error creating task:', err);
-      setError('Failed to create task.');
-    }
+  if (!newTask.title.trim()) return;
+  try {
+    const { data } = await api.post('/tasks', {
+      title: newTask.title,
+      dueDate: newTask.dueDate || null,
+      priority: newTask.priority,
+      projectId,
+    });
+    setTasks(prev => [...prev, data]);
+    setNewTask({ title: '', dueDate: '', priority: 'Medium' }); // Reset form
+    showToast('Task created successfully!', 'success');
+  } catch (err) {
+    console.error('Error creating task:', err);
+    setError('Failed to create task.');
+    showToast('Failed to create task.', 'danger');
+  }
   };
 
   const handleToggleComplete = async (taskId, currentStatus) => {
     try {
-      await api.put(`/tasks/${taskId}`, {
-        completed: !currentStatus,
-      });
+      const newStatus = currentStatus === 'Done' ? 'To Do' : 'Done'; // ✅ Use Done, not Completed
+  
+      await api.put(`/tasks/${taskId}`, { status: newStatus });
+  
       setTasks((prev) =>
         prev.map((task) =>
-          task._id === taskId ? { ...task, completed: !currentStatus } : task
+          task._id === taskId ? { ...task, status: newStatus } : task
         )
       );
+  
+      showToast('Task updated successfully!', 'success');
     } catch (err) {
       console.error('Error updating task:', err);
       setError('Failed to update task.');
+      showToast('Failed to update task.', 'danger');
     }
   };
+  
+  
 
   if (!projectId) return null;
     const handleDeleteTask = async (taskId) => {
         try {
-        await api.delete(`/tasks/${taskId}`);
-        setTasks((prev) => prev.filter((task) => task._id !== taskId));
+          await api.delete(`/tasks/${taskId}`);
+          setTasks((prev) => prev.filter((task) => task._id !== taskId));
+          showToast('Task deleted successfully'); 
         } catch (err) {
-        console.error('Error deleting task:', err);
-        setError('Failed to delete task.');
+          console.error('Error deleting task:', err);
+          setError('Failed to delete task.');
+          showToast('Failed to delete task.', 'danger');
         }
     };
 
@@ -97,18 +115,20 @@ function TaskList({ projectId }) {
                 task._id === taskId ? { ...task, title: editTaskTitle } : task
               )
             );
+            showToast('Task updated successfully!', 'success');
             setHighlightTaskId(taskId);      // ✅ ADD THIS
             setTimeout(() => setHighlightTaskId(null), 1000); // ✅ Clear after 1 second
             handleCancelEdit();
         } catch (err) {
             console.error('Error updating task title:', err);
             setError('Failed to update task.');
+            showToast('Failed to update task.', 'danger');
         }
     };
       
 
   return (
-    <div className="mt-3">
+    <div className="mt-5">
       <h5>Tasks</h5>
 
       {error && <p className="text-danger">{error}</p>}
@@ -118,8 +138,32 @@ function TaskList({ projectId }) {
         <p className="text-muted">No tasks yet. Add one!</p>
       )}
 
+      <Form.Select
+        size="sm"
+        className="mb-3"
+        value={sortOption}
+        onChange={(e) => setSortOption(e.target.value)}
+        style={{ maxWidth: '200px' }}
+      >
+        <option value="dueDate">Sort by Due Date</option>
+        <option value="priority">Sort by Priority</option>
+      </Form.Select>
+
+    <h4 className="text-center mb-4">Tasks</h4>
     <ListGroup className="mb-3">
-    {tasks.map((task) => (
+      {[...tasks]
+        .sort((a, b) => {
+          if (sortOption === 'dueDate') {
+            return new Date(a.dueDate || Infinity) - new Date(b.dueDate || Infinity);
+          }
+          if (sortOption === 'priority') {
+            const priorityOrder = { High: 1, Medium: 2, Low: 3 };
+            return (priorityOrder[a.priority] || 4) - (priorityOrder[b.priority] || 4);
+          }
+          return 0;
+        })
+        .map((task) => (
+
         <ListGroup.Item key={task._id} variant={highlightTaskId === task._id ? 'success' : undefined}>
         <Row className="align-items-center">
             <Col xs={8}>
@@ -131,21 +175,49 @@ function TaskList({ projectId }) {
                 onChange={(e) => setEditTaskTitle(e.target.value)}
                 />
             ) : (
-                <Form.Check
+              <Form.Check
                 type="checkbox"
                 label={
-                    <span
-                    style={{
-                        textDecoration: task.completed ? 'line-through' : 'none',
-                        color: task.completed ? 'gray' : 'inherit',
-                    }}
+                  <>
+                    <div
+                      style={{
+                        textDecoration: task.status === 'Done' ? 'line-through' : 'none',
+                        color: task.status === 'Done' ? 'gray' : 'inherit',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '0.5rem',
+                      }}
                     >
-                    {task.title}
-                    </span>
+                      <Link to={`/tasks/${task._id}`} className="text-decoration-none">
+                        {task.title}
+                      </Link>
+
+                      {task.priority && (
+                        <Badge
+                          bg={
+                            task.priority === 'High' ? 'danger' :
+                            task.priority === 'Medium' ? 'primary' :
+                            'success'
+                          }
+                        >
+                          {task.priority}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {task.dueDate && (
+                      <div style={{ marginTop: '4px', fontSize: '0.85rem', color: '#6c757d' }}>
+                        Due: {new Date(task.dueDate).toLocaleDateString()}
+                      </div>
+                    )}
+                  </>
                 }
-                checked={task.completed}
-                onChange={() => handleToggleComplete(task._id, task.completed)}
-                />
+                checked={task.status === 'Done'}
+                onChange={() => handleToggleComplete(task._id, task.status)}
+              />
+            
             )}
             </Col>
 
@@ -194,20 +266,52 @@ function TaskList({ projectId }) {
     ))}
     </ListGroup>
 
-      <Form onSubmit={handleAddTask}>
-        <Form.Group className="mb-2">
-          <Form.Control
-            type="text"
-            placeholder="New task title"
-            value={newTaskTitle}
-            onChange={(e) => setNewTaskTitle(e.target.value)}
-          />
-        </Form.Group>
-        <Button type="submit" size="sm" variant="primary">
-          Add Task
-        </Button>
-      </Form>
-    </div> 
+    <Row className="justify-content-center mb-4">
+      <Col xs={12} md={8} lg={6}>
+        <Card className="shadow-sm">
+          <Card.Body>
+            <Form onSubmit={handleAddTask}>
+              <Form.Group className="mb-3">
+                <Form.Label>Task Title</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={newTask.title}
+                  onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Enter task title"
+                  required
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Due Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={newTask.dueDate}
+                  onChange={(e) => setNewTask(prev => ({ ...prev, dueDate: e.target.value }))}
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-4">
+                <Form.Label>Priority</Form.Label>
+                <Form.Select
+                  value={newTask.priority}
+                  onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value }))}
+                >
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                </Form.Select>
+              </Form.Group>
+
+              <Button type="submit" variant="success" className="w-100">
+                Add Task
+              </Button>
+            </Form>
+          </Card.Body>
+        </Card>
+      </Col>
+    </Row>
+  </div> 
   );
 }
 
