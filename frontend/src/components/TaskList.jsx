@@ -5,7 +5,6 @@ import { Trash } from 'react-bootstrap-icons'; // Add this if you're using react
 import { useToast } from '../context/ToastContext';
 import { Badge } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-//import { format } from 'date-fns';
 
 
 function TaskList({ projectId }) {
@@ -19,9 +18,6 @@ function TaskList({ projectId }) {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [editTaskId, setEditTaskId] = useState(null);
-  const [editTaskTitle, setEditTaskTitle] = useState('');
-  const [highlightTaskId, setHighlightTaskId] = useState(null);
   const { showToast } = useToast();
   const [sortOption, setSortOption] = useState('dueDate'); // default sort
 
@@ -56,7 +52,7 @@ function TaskList({ projectId }) {
       projectId,
     };
   
-    // ✅ Reset BEFORE fetchTasks() to avoid UI staleness
+    // Reset BEFORE fetchTasks() to avoid UI staleness
     setNewTask({ title: '', dueDate: '', priority: 'Medium', notes: '' });
   
     try {
@@ -73,7 +69,7 @@ function TaskList({ projectId }) {
 
   const handleToggleComplete = async (taskId, currentStatus) => {
     try {
-      const newStatus = currentStatus === 'Done' ? 'To Do' : 'Done'; // ✅ Use Done, not Completed
+      const newStatus = currentStatus === 'Done' ? 'To Do' : 'Done'; 
   
       await api.put(`/tasks/${taskId}`, { status: newStatus });
   
@@ -106,36 +102,6 @@ function TaskList({ projectId }) {
         }
     };
 
-    const handleStartEdit = (task) => {
-        setEditTaskId(task._id);
-        setEditTaskTitle(task.title);
-        };
-        
-        const handleCancelEdit = () => {
-        setEditTaskId(null);
-        setEditTaskTitle('');
-        };
-        
-        const handleSaveEdit = async (taskId) => {
-        try {
-            await api.put(`/tasks/${taskId}`, { title: editTaskTitle });
-            setTasks((prev) =>
-              prev.map((task) =>
-                task._id === taskId ? { ...task, title: editTaskTitle } : task
-              )
-            );
-            showToast('Task updated successfully!', 'success');
-            setHighlightTaskId(taskId);      // ✅ ADD THIS
-            setTimeout(() => setHighlightTaskId(null), 1000); // ✅ Clear after 1 second
-            handleCancelEdit();
-        } catch (err) {
-            console.error('Error updating task title:', err);
-            setError('Failed to update task.');
-            showToast('Failed to update task.', 'danger');
-        }
-    };
-      
-
   return (
     <div className="mt-5">
       <h5>Tasks</h5>
@@ -149,140 +115,101 @@ function TaskList({ projectId }) {
 
       <Form.Select
         size="sm"
-        className="mb-3"
-        value={sortOption}
+       value={sortOption}
         onChange={(e) => setSortOption(e.target.value)}
         style={{ maxWidth: '200px' }}
+        className="bg-secondary text-light mb-3"
       >
         <option value="dueDate">Sort by Due Date</option>
         <option value="priority">Sort by Priority</option>
       </Form.Select>
 
     <h4 className="text-center mb-4">Tasks</h4>
-    <ListGroup className="mb-3">
-      {[...tasks]
-        .sort((a, b) => {
-          if (sortOption === 'dueDate') {
-            return new Date(a.dueDate || Infinity) - new Date(b.dueDate || Infinity);
-          }
-          if (sortOption === 'priority') {
-            const priorityOrder = { High: 1, Medium: 2, Low: 3 };
-            return (priorityOrder[a.priority] || 4) - (priorityOrder[b.priority] || 4);
-          }
-          return 0;
-        })
-        .map((task) => (
+    <div className="mx-auto" style={{ maxWidth: '700px' }}>
+      <ListGroup className="mb-3">
+        {[...tasks]
+          .sort((a, b) => {
+            if (sortOption === 'dueDate') {
+              return new Date(a.dueDate || Infinity) - new Date(b.dueDate || Infinity);
+            }
+            if (sortOption === 'priority') {
+              const priorityOrder = { High: 1, Medium: 2, Low: 3 };
+              return (priorityOrder[a.priority] || 4) - (priorityOrder[b.priority] || 4);
+            }
+            return 0;
+          })
+          .map((task) => (
+          <ListGroup.Item key={task._id} className="border rounded-2 bg-secondary">
+          <Row className="align-items-center">
+              <Col xs={8}>
+                <Form.Check
+                  type="checkbox"
+                  label={
+                    <>
+                      <div
+                        style={{
+                          textDecoration: task.status === 'Done' ? 'line-through' : 'none',
+                          color: task.status === 'Done' ? 'gray' : 'inherit',
+                          fontWeight: 'bold',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        <Link to={`/tasks/${task._id}`} className="text-decoration-none text-dark">
+                          {task.title}
+                        </Link>
 
-        <ListGroup.Item key={task._id} variant={highlightTaskId === task._id ? 'success' : undefined}>
-        <Row className="align-items-center">
-            <Col xs={8}>
-            {editTaskId === task._id ? (
-                <Form.Control
-                type="text"
-                size="sm"
-                value={editTaskTitle}
-                onChange={(e) => setEditTaskTitle(e.target.value)}
-                />
-            ) : (
-              <Form.Check
-                type="checkbox"
-                label={
-                  <>
-                    <div
-                      style={{
-                        textDecoration: task.status === 'Done' ? 'line-through' : 'none',
-                        color: task.status === 'Done' ? 'gray' : 'inherit',
-                        fontWeight: 'bold',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '0.5rem',
-                      }}
-                    >
-                      <Link to={`/tasks/${task._id}`} className="text-decoration-none">
-                        {task.title}
-                      </Link>
-
-                      {task.priority && (
-                        <Badge
-                          bg={
-                            task.priority === 'High' ? 'danger' :
-                            task.priority === 'Medium' ? 'primary' :
-                            'success'
-                          }
-                        >
-                          {task.priority}
-                        </Badge>
-                      )}
-                    </div>
-
-                    {task.dueDate && (
-                      <div style={{ marginTop: '4px', fontSize: '0.85rem', color: '#6c757d' }}>
-                        Due: {new Date(task.dueDate).toLocaleDateString('en-US', {
-                          timeZone: 'UTC',         //Force UTC to avoid shifting the day
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
+                        {task.priority && (
+                          <Badge
+                            bg={
+                              task.priority === 'High' ? 'danger' :
+                              task.priority === 'Medium' ? 'primary' :
+                              'success'
+                            }
+                          >
+                            {task.priority}
+                          </Badge>
+                        )}
                       </div>
-                    )}
-                  </>
-                }
-                checked={task.status === 'Done'}
-                onChange={() => handleToggleComplete(task._id, task.status)}
-              />
-            
-            )}
-            </Col>
 
-            <Col xs={4} className="text-end">
-            {editTaskId === task._id ? (
-                <>
+                      {task.dueDate && (
+                        <div style={{ marginTop: '4px', fontSize: '0.85rem', color: '#6c757d' }}>
+                          Due: {new Date(task.dueDate).toLocaleDateString('en-US', {
+                            timeZone: 'UTC',         //Force UTC to avoid shifting the day
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </div>
+                      )}
+                    </>
+                  }
+                  checked={task.status === 'Done'}
+                  onChange={() => handleToggleComplete(task._id, task.status)}
+                />
+              
+              
+              </Col>
+
+              <Col xs={4} className="text-end">
                 <Button
-                    size="sm"
-                    variant="success"
-                    className="me-1"
-                    onClick={() => handleSaveEdit(task._id)}
-                >
-                    Save
-                </Button>
-                <Button
-                    size="sm"
-                    variant="secondary"
-                    className="me-1"
-                    onClick={handleCancelEdit}
-                >
-                    Cancel
-                </Button>
-                </>
-            ) : (
-                <>
-                <Button
-                    variant="warning"
-                    size="sm"
-                    className="me-1"
-                    onClick={() => handleStartEdit(task)}
-                >
-                    Edit
-                </Button>
-                <Button
-                    variant="danger"
+                    variant="outline-light"
                     size="sm"
                     onClick={() => handleDeleteTask(task._id)}
                 >
-                    <Trash />
+                    <Trash size={14} />
                 </Button>
-                </>
-            )}
-            </Col>
-        </Row>
-        </ListGroup.Item>
-    ))}
-    </ListGroup>
-
+              </Col>
+          </Row>
+          </ListGroup.Item>
+      ))}
+      </ListGroup>
+    </div>
     <Row className="justify-content-center mb-4">
       <Col xs={12} md={8} lg={6}>
-        <Card className="shadow-sm">
+      <Card className="bg-secondary text-light shadow-sm border-0">
           <Card.Body>
             <Form onSubmit={handleAddTask}>
               <Form.Group className="mb-3">
@@ -293,6 +220,7 @@ function TaskList({ projectId }) {
                   onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
                   placeholder="Enter task title"
                   required
+                  className="bg-secondary text-light" 
                 />
               </Form.Group>
 
@@ -302,6 +230,7 @@ function TaskList({ projectId }) {
                   type="date"
                   value={newTask.dueDate}
                   onChange={(e) => setNewTask(prev => ({ ...prev, dueDate: e.target.value }))}
+                  className="bg-secondary text-light"
                 />
               </Form.Group>
 
@@ -310,6 +239,7 @@ function TaskList({ projectId }) {
                 <Form.Select
                   value={newTask.priority}
                   onChange={(e) => setNewTask(prev => ({ ...prev, priority: e.target.value }))}
+                  className="bg-secondary text-light"
                 >
                   <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
@@ -326,12 +256,16 @@ function TaskList({ projectId }) {
                     setNewTask((prev) => ({ ...prev, notes: e.target.value }))
                   }
                   placeholder="Add task notes (optional)"
+                  className="bg-secondary text-light"
                 />
               </Form.Group>
-
-              <Button type="submit" variant="success" className="w-100">
-                Add Task
-              </Button>
+              <Card.Footer className="bg-secondary border-0">
+                <div className="d-flex justify-content-center">
+                  <Button type="submit" variant="success" className="w-50">
+                    Add Task
+                  </Button>
+                </div>
+              </Card.Footer>
             </Form>
           </Card.Body>
         </Card>

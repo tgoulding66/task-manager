@@ -66,16 +66,23 @@ function ProjectDetails() {
   
 
   return (
-    <Container className="mt-4">
-      <Button as={Link} to="/" variant="secondary" className="mb-4">
-        ← Back to Dashboard
-      </Button>
+    <Container className="min-vh-100 d-flex flex-column justify-content-start">
+      <div className="d-flex justify-content-left mb-3">
+        <Button
+          as={Link}
+          to="/"
+          variant="secondary"
+          size='sm'
+        >
+          ← Back to Dashboard
+        </Button>
+      </div>
 
       {isEditing ? (
       
         <Row className="justify-content-center mb-4">
           <Col xs={12} md={8} lg={6}>
-            <Card className="shadow-sm">
+            <Card className="shadow-sm h-100 rounded-3 border-1 bg-secondary text-light">
               <Card.Body>
                 <Form onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }}>
                   <Form.Group className="mb-3">
@@ -85,6 +92,7 @@ function ProjectDetails() {
                       value={editedName}
                       onChange={(e) => setEditedName(e.target.value)}
                       placeholder="Enter project name"
+                      className="bg-secondary text-light"
                       required
                     />
                   </Form.Group>
@@ -98,6 +106,7 @@ function ProjectDetails() {
                       onChange={(e) => setEditedDescription(e.target.value)}
                       placeholder="Optional description"
                       style={{ resize: 'vertical' }}
+                      className="bg-secondary text-light"
                     />
                   </Form.Group>
 
@@ -107,6 +116,7 @@ function ProjectDetails() {
                       type="date"
                       value={editedDueDate}
                       onChange={(e) => setEditedDueDate(e.target.value)}
+                      className="bg-secondary text-light"
                     />
                   </Form.Group>
 
@@ -123,7 +133,6 @@ function ProjectDetails() {
             </Card>
           </Col>
         </Row>
-       
       ) : (
         <>
           <h2 className="text-center">{project.name}</h2>
@@ -135,8 +144,6 @@ function ProjectDetails() {
           </div>
         </>
       )}
-
-
 
       <TaskList projectId={project._id} />
     </Container>

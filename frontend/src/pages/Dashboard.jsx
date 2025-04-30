@@ -47,7 +47,7 @@ function Dashboard() {
       
       <Row className="justify-content-center mb-4">
        <Col xs={12} md={8} lg={6}>
-        <Card className="mb-4 shadow-sm">
+        <Card className="mb-4 shadow-sm bg-secondary text-light">
           <Card.Body>
             <Form
               onSubmit={async (e) => {
@@ -77,8 +77,9 @@ function Dashboard() {
                   type="text"
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
-                  placeholder="Enter project name"
                   required
+                  placeholder="Enter project name"
+                  className="bg-secondary text-light"
                   />
               </Form.Group>
 
@@ -90,7 +91,8 @@ function Dashboard() {
                     value={newProjectDesc}
                     onChange={(e) => setNewProjectDesc(e.target.value)}
                     placeholder="Optional project description"
-                    style={{ resize: 'vertical' }} // allow user to stretch it vertically if needed
+                    style={{ resize: 'vertical' }} 
+                    className="bg-secondary text-light"
                   />
               </Form.Group>
               
@@ -102,7 +104,7 @@ function Dashboard() {
                   onChange={(e) => {
                     setNewProjectDueDate(e.target.value);
                   }}
-                  
+                  className="bg-secondary text-light"
                 />
               </Form.Group>
 
@@ -117,31 +119,39 @@ function Dashboard() {
       <Row xs={1} md={2} lg={3} className="g-4">
         {projects.map((project) => (
           <Col key={project._id}>
-            <Card>
+            <Card className="shadow-sm h-100 rounded-3 border-1 bg-secondary text-light">
               <Card.Body>
                 <div className="d-flex justify-content-between align-items-center">
-                  <Card.Title>
-                    <Link to={`/projects/${project._id}`} className="text-decoration-none">
+                  <Card.Title  className="mb-2">
+                    <Link to={`/projects/${project._id}`} className="text-decoration-none text-dark">
                       {project.name}
                     </Link>
                   </Card.Title>
 
                   <Button
-                    variant="danger"
+                    variant="outline-light"
                     size="sm"
                     onClick={() => handleDeleteProject(project._id)}
                   >
-                    <Trash size={16} />
+                    <Trash size={14} />
                   </Button>
                 </div>
 
-                <Card.Text>
-                  <span>
+                <Card.Text className="mb-0 text-truncate">
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
                     {project.description || 'No description provided.'}
                   </span>
-                  
+
                   {project.dueDate && (
-                    <span className="text-muted small d-block mt-1">
+                    <span className="text-muted small d-block mt-1" >
                       Due: {new Date(project.dueDate).toLocaleDateString('en-US', {
                           timeZone: 'UTC',         //Force UTC to avoid shifting the day
                           year: 'numeric',
