@@ -43,16 +43,20 @@ A full-featured task management application built with the **MERN** stack — in
 cd backend
 npm install
 npm run dev
+```
 
 Create a .env file in /backend with:
 PORT=3000
 MONGO_URI=your_mongo_connection_string
 JWT_SECRET=your_jwt_secret
 
-🎨 Frontend Setup
+## 🎨 Frontend Setup
+
+```bash
 cd frontend
 npm install
 npm run dev
+```
 
 Access frontend at `http://localhost:5173`  
 Access backend API at `http://localhost:3000`
