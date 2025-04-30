@@ -8,13 +8,14 @@ const Project = require('../models/Project');
 // It then returns the new project.
 
 const createProject = async (req, res) => {
-  const { name, description } = req.body;
+  const { name, description, dueDate } = req.body;
 
   try {
     const project = await Project.create({
       name,
       description,
-      user: req.user.id  // user comes from JWT middleware
+      user: req.user.id,  // user comes from JWT middleware
+      dueDate: dueDate ? new Date(dueDate) : null,
     });
 
     res.status(201).json(project);
@@ -73,7 +74,7 @@ const getProjectById = async (req, res) => {
 
 const updateProject = async (req, res) => {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { name, description, dueDate } = req.body;
   
     try {
       const project = await Project.findOne({ _id: id, user: req.user.id });
@@ -82,7 +83,7 @@ const updateProject = async (req, res) => {
   
       project.name = name || project.name;
       project.description = description || project.description;
-  
+      project.dueDate = dueDate ? new Date(dueDate) : null; 
       await project.save();
       res.status(200).json(project);
     } catch (err) {

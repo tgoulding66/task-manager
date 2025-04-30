@@ -5,7 +5,7 @@ import TaskList from '../components/TaskList';
 //import { Container, Button } from 'react-bootstrap';
 import { useToast } from '../context/ToastContext';
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
-
+//import { format } from 'date-fns';
 
 function ProjectDetails() {
   const { id } = useParams();
@@ -15,6 +15,7 @@ function ProjectDetails() {
   const [editedName, setEditedName] = useState('');
   const [editedDescription, setEditedDescription] = useState('');
   const { showToast } = useToast();  
+  const [editedDueDate, setEditedDueDate] = useState('');
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -37,6 +38,8 @@ function ProjectDetails() {
     setIsEditing(true);
     setEditedName(project.name);
     setEditedDescription(project.description || '');
+    setEditedDueDate(project.dueDate ? project.dueDate.split('T')[0] : '');
+
   };
   
   const handleCancelEdit = () => {
@@ -48,6 +51,7 @@ function ProjectDetails() {
       const { data } = await api.put(`/projects/${project._id}`, {
         name: editedName,
         description: editedDescription,
+        dueDate: editedDueDate ? new Date(editedDueDate) : null,
       });
   
       setProject(data);
@@ -94,6 +98,15 @@ function ProjectDetails() {
                       onChange={(e) => setEditedDescription(e.target.value)}
                       placeholder="Optional description"
                       style={{ resize: 'vertical' }}
+                    />
+                  </Form.Group>
+
+                  <Form.Group className="mb-2">
+                    <Form.Label>Due Date</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={editedDueDate}
+                      onChange={(e) => setEditedDueDate(e.target.value)}
                     />
                   </Form.Group>
 

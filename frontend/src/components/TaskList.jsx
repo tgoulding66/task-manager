@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import api from '../services/api';
 import { Form, Button, ListGroup, Spinner, Row, Col, Card } from 'react-bootstrap';
 import { Trash } from 'react-bootstrap-icons'; // Add this if you're using react-bootstrap-icons
 import { useToast } from '../context/ToastContext';
 import { Badge } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+//import { format } from 'date-fns';
+
 
 function TaskList({ projectId }) {
   const [tasks, setTasks] = useState([]);
@@ -12,6 +14,7 @@ function TaskList({ projectId }) {
     title: '',
     dueDate: '',
     priority: 'Medium',
+    notes: '',
     });
 
   const [loading, setLoading] = useState(false);
@@ -22,45 +25,51 @@ function TaskList({ projectId }) {
   const { showToast } = useToast();
   const [sortOption, setSortOption] = useState('dueDate'); // default sort
 
-  
+  const fetchTasks = useCallback(async () => {
+  try {
+    setLoading(true);
+    const { data } = await api.get(`/tasks?projectId=${projectId}`);
+    setTasks(data);
+  } catch (err) {
+    console.error('Error fetching tasks:', err);
+    setError('Failed to load tasks.');
+  } finally {
+    setLoading(false);
+  }
+}, [projectId]);
+
   useEffect(() => {
     if (!projectId) return;
-
-    const fetchTasks = async () => {
-      try {
-        setLoading(true);
-        const { data } = await api.get(`/tasks?projectId=${projectId}`);
-        setTasks(data);
-      } catch (err) {
-        console.error('Error fetching tasks:', err);
-        setError('Failed to load tasks.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTasks();
-  }, [projectId]);
+      fetchTasks();
+  }, [fetchTasks, projectId]);
 
   const handleAddTask = async (e) => {
     e.preventDefault();
-  if (!newTask.title.trim()) return;
-  try {
-    const { data } = await api.post('/tasks', {
+    if (!newTask.title.trim()) return;
+  
+    // Extract values and reset form immediately
+    const taskToSubmit = {
       title: newTask.title,
       dueDate: newTask.dueDate || null,
       priority: newTask.priority,
+      notes: newTask.notes,
       projectId,
-    });
-    setTasks(prev => [...prev, data]);
-    setNewTask({ title: '', dueDate: '', priority: 'Medium' }); // Reset form
-    showToast('Task created successfully!', 'success');
-  } catch (err) {
-    console.error('Error creating task:', err);
-    setError('Failed to create task.');
-    showToast('Failed to create task.', 'danger');
-  }
+    };
+  
+    // ✅ Reset BEFORE fetchTasks() to avoid UI staleness
+    setNewTask({ title: '', dueDate: '', priority: 'Medium', notes: '' });
+  
+    try {
+      await api.post('/tasks', taskToSubmit);
+      await fetchTasks();
+      showToast('Task created successfully!', 'success');
+    } catch (err) {
+      console.error('Error creating task:', err);
+      setError('Failed to create task.');
+      showToast('Failed to create task.', 'danger');
+    }
   };
+  
 
   const handleToggleComplete = async (taskId, currentStatus) => {
     try {
@@ -209,7 +218,12 @@ function TaskList({ projectId }) {
 
                     {task.dueDate && (
                       <div style={{ marginTop: '4px', fontSize: '0.85rem', color: '#6c757d' }}>
-                        Due: {new Date(task.dueDate).toLocaleDateString()}
+                        Due: {new Date(task.dueDate).toLocaleDateString('en-US', {
+                          timeZone: 'UTC',         //Force UTC to avoid shifting the day
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
                       </div>
                     )}
                   </>
@@ -301,6 +315,18 @@ function TaskList({ projectId }) {
                   <option value="Medium">Medium</option>
                   <option value="High">High</option>
                 </Form.Select>
+              </Form.Group>
+              <Form.Group controlId="taskNotes" className="mb-3">
+                <Form.Label>Notes</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={newTask.notes}
+                  onChange={(e) =>
+                    setNewTask((prev) => ({ ...prev, notes: e.target.value }))
+                  }
+                  placeholder="Add task notes (optional)"
+                />
               </Form.Group>
 
               <Button type="submit" variant="success" className="w-100">

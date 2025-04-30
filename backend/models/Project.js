@@ -17,7 +17,13 @@ const projectSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
-  }
+  },
+  // Optional due date for project completion
+  dueDate: {
+    type: Date,
+    default: null,
+  },
+  
 }, { timestamps: true });
 
 module.exports = mongoose.model('Project', projectSchema);

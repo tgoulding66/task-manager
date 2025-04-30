@@ -4,13 +4,14 @@ import api from '../services/api';
 import { Trash } from 'react-bootstrap-icons';
 import { Link } from 'react-router-dom';  
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
-
+//import { format } from 'date-fns';
 
 function Dashboard() {
   const [projects, setProjects] = useState([]);
   const [error, setError] = useState('');
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDesc, setNewProjectDesc] = useState(''); 
+  const [newProjectDueDate, setNewProjectDueDate] = useState('');
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -57,10 +58,12 @@ function Dashboard() {
                   const { data } = await api.post('/projects', {
                       name: newProjectName,
                       description: newProjectDesc,
+                      dueDate: newProjectDueDate || null,
                   });
                   setProjects([...projects, data]);
                   setNewProjectName('');
                   setNewProjectDesc('');
+                  setNewProjectDueDate('');
                   } catch (err) {
                   console.error('Create project error:', err);
                   setError('Failed to create project.');
@@ -90,6 +93,19 @@ function Dashboard() {
                     style={{ resize: 'vertical' }} // allow user to stretch it vertically if needed
                   />
               </Form.Group>
+              
+              <Form.Group className="mb-3">
+                <Form.Label>Due Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={newProjectDueDate}
+                  onChange={(e) => {
+                    setNewProjectDueDate(e.target.value);
+                  }}
+                  
+                />
+              </Form.Group>
+
 
               <Button type="submit" variant="success">Add Project</Button>
             </Form>
@@ -120,11 +136,22 @@ function Dashboard() {
                 </div>
 
                 <Card.Text>
-                  {project.description || 'No description provided.'}
+                  <span>
+                    {project.description || 'No description provided.'}
+                  </span>
+                  
+                  {project.dueDate && (
+                    <span className="text-muted small d-block mt-1">
+                      Due: {new Date(project.dueDate).toLocaleDateString('en-US', {
+                          timeZone: 'UTC',         //Force UTC to avoid shifting the day
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                    </span>
+                  )}
                 </Card.Text>
-
-                {/* <TaskList projectId={project._id} /> */}
-              </Card.Body>
+             </Card.Body>
             </Card>
           </Col>
         ))}

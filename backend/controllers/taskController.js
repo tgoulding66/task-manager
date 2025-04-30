@@ -2,7 +2,7 @@ const Task = require('../models/Task');
 
 // Create a task
 const createTask = async (req, res) => {
-  const { title, description, status, projectId, dueDate, priority } = req.body;
+  const { title, description, status, projectId, dueDate, priority, subtasks } = req.body;
 
   try {
     const task = await Task.create({
@@ -12,7 +12,8 @@ const createTask = async (req, res) => {
       dueDate,
       priority,
       project: projectId,
-      user: req.user.id
+      user: req.user.id,
+      subtasks: subtasks || [],
     });
 
     res.status(201).json(task);
@@ -60,7 +61,7 @@ const getTasks = async (req, res) => {
 // Update a task
 const updateTask = async (req, res) => {
   const { id } = req.params;
-  const { title, description, status, completed, priority, dueDate } = req.body;
+  const { title, description, status, completed, priority, dueDate, notes, subtasks } = req.body;
 
   try {
     const task = await Task.findOne({ _id: id, user: req.user.id });
@@ -72,8 +73,9 @@ const updateTask = async (req, res) => {
     if (completed !== undefined) task.completed = completed;
     if (priority !== undefined) task.priority = priority;
     if (dueDate !== undefined) task.dueDate = dueDate;
-
-    await task.save();
+    if (notes !== undefined) task.notes = notes;
+    if (subtasks !== undefined) task.subtasks = subtasks;
+    await task.save(); 
     res.status(200).json(task);
   } catch (err) {
     console.error('Update task error:', err); // <--- Bonus debug
