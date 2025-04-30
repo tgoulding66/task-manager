@@ -62,20 +62,22 @@ Access frontend at `http://localhost:5173`
 Access backend API at `http://localhost:3000`
 
 ✅ Coming Soon
-Light/dark theme toggle
-User settings page
-Drag-and-drop task reordering
-Global search and filtering
+
+- Light/dark theme toggle
+- User settings page
+- Drag-and-drop task reordering
+- Global search and filtering
 
 🧪 API Testing
-Use Postman or Thunder Client to test the following routes:
-POST /api/users/register
-POST /api/users/login
-GET /api/projects
-POST /api/tasks
-PUT /api/tasks/:id
 
-Include your JWT in the Authorization: Bearer <token> header.
+- Use Postman or Thunder Client to test the following routes:
+- POST /api/users/register
+- POST /api/users/login
+- GET /api/projects
+- POST /api/tasks
+- PUT /api/tasks/:id
+
+Include your JWT in the Authorization: Bearer token header.
 
 🛠️ License
 MIT — feel free to fork and build on it
