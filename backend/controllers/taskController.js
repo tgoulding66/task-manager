@@ -2,7 +2,7 @@ const Task = require('../models/Task');
 
 // Create a task
 const createTask = async (req, res) => {
-  const { title, description, status, projectId, dueDate, priority, subtasks } = req.body;
+  const { title, description, status, projectId, dueDate, priority, subtasks, type, points } = req.body;
 
   try {
     const task = await Task.create({
@@ -14,6 +14,8 @@ const createTask = async (req, res) => {
       project: projectId,
       user: req.user.id,
       subtasks: subtasks || [],
+      type,
+      points,
     });
 
     res.status(201).json(task);
@@ -61,7 +63,7 @@ const getTasks = async (req, res) => {
 // Update a task
 const updateTask = async (req, res) => {
   const { id } = req.params;
-  const { title, description, status, completed, priority, dueDate, notes, subtasks } = req.body;
+  const { title, description, status, completed, priority, dueDate, notes, subtasks, type, points } = req.body;
 
   try {
     const task = await Task.findOne({ _id: id, user: req.user.id });
@@ -75,6 +77,8 @@ const updateTask = async (req, res) => {
     if (dueDate !== undefined) task.dueDate = dueDate;
     if (notes !== undefined) task.notes = notes;
     if (subtasks !== undefined) task.subtasks = subtasks;
+    if (type !== undefined) task.type = type;
+    if (points !== undefined) task.points = points;
     await task.save(); 
     res.status(200).json(task);
   } catch (err) {

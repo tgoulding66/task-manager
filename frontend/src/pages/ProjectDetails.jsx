@@ -16,6 +16,8 @@ function ProjectDetails() {
   const [editedDescription, setEditedDescription] = useState('');
   const { showToast } = useToast();  
   const [editedDueDate, setEditedDueDate] = useState('');
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [completedPoints, setCompletedPoints] = useState(0);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -137,6 +139,10 @@ function ProjectDetails() {
         <>
           <h2 className="text-center">{project.name}</h2>
           <p className="text-center text-muted">{project.description || 'No description provided.'}</p>
+          <p className="text-center fw-bold text-light mb-3">
+          Total Points: {totalPoints} ({completedPoints} pts completed)
+          </p>
+
           <div className="text-center mb-3">
             <Button variant="warning" size="sm" onClick={handleStartEdit}>
               Edit Project
@@ -145,7 +151,7 @@ function ProjectDetails() {
         </>
       )}
 
-      <TaskList projectId={project._id} />
+      <TaskList projectId={project._id} onTotalPointsChange={setTotalPoints} onCompletedPointsChange={setCompletedPoints} />
     </Container>
   );
 }

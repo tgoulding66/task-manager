@@ -7,15 +7,22 @@ import { Badge } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
 
-function TaskList({ projectId }) {
+function TaskList({ projectId, onTotalPointsChange, onCompletedPointsChange }) {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState({
     title: '',
     dueDate: '',
     priority: 'Medium',
     notes: '',
+    type: 'New Feature',
+    points: 0,
     });
-
+  
+  const totalPoints = tasks.reduce((sum, task) => sum + (task.points || 0), 0);
+  const completedPoints = tasks.reduce(
+  (sum, task) => sum + (task.status === 'Done' ? (task.points || 0) : 0),
+  0
+);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { showToast } = useToast();
@@ -39,6 +46,18 @@ function TaskList({ projectId }) {
       fetchTasks();
   }, [fetchTasks, projectId]);
 
+  useEffect(() => {
+    if (onTotalPointsChange) {
+      onTotalPointsChange(totalPoints);
+    }
+  }, [totalPoints, onTotalPointsChange]);
+  
+  useEffect(() => {
+    if (onCompletedPointsChange) {
+      onCompletedPointsChange(completedPoints);
+    }
+  }, [completedPoints, onCompletedPointsChange]);
+
   const handleAddTask = async (e) => {
     e.preventDefault();
     if (!newTask.title.trim()) return;
@@ -49,11 +68,13 @@ function TaskList({ projectId }) {
       dueDate: newTask.dueDate || null,
       priority: newTask.priority,
       notes: newTask.notes,
+      type: newTask.type,
+      points: newTask.points,
       projectId,
     };
   
     // Reset BEFORE fetchTasks() to avoid UI staleness
-    setNewTask({ title: '', dueDate: '', priority: 'Medium', notes: '' });
+    setNewTask({ title: '', dueDate: '', priority: 'Medium', notes: '', type: 'New Feature', points: 0 });
   
     try {
       await api.post('/tasks', taskToSubmit);
@@ -139,9 +160,9 @@ function TaskList({ projectId }) {
             return 0;
           })
           .map((task) => (
-          <ListGroup.Item key={task._id} className="border rounded-2 bg-secondary">
-          <Row className="align-items-center">
-              <Col xs={8}>
+          <ListGroup.Item key={task._id} className="border rounded-2 bg-secondary" style={{ minHeight: '110px' }}>
+            <div className="d-flex justify-content-between align-items-start">
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <Form.Check
                   type="checkbox"
                   label={
@@ -160,9 +181,21 @@ function TaskList({ projectId }) {
                         <Link to={`/tasks/${task._id}`} className="text-decoration-none text-dark">
                           {task.title}
                         </Link>
-
+                      </div>
+                      <div  className="mt-1" >
+                        <Badge  className="me-1"
+                          bg={
+                            task.type === 'Bug'
+                              ? 'danger'
+                              : task.type === 'Enhancement'
+                              ? 'info'
+                              : 'primary'
+                          }
+                        >
+                          {task.type}
+                        </Badge>
                         {task.priority && (
-                          <Badge
+                          <Badge  className="me-1"
                             bg={
                               task.priority === 'High' ? 'danger' :
                               task.priority === 'Medium' ? 'primary' :
@@ -172,6 +205,7 @@ function TaskList({ projectId }) {
                             {task.priority}
                           </Badge>
                         )}
+                         <Badge bg="secondary">{task.points} pts</Badge>
                       </div>
 
                       {task.dueDate && (
@@ -189,11 +223,8 @@ function TaskList({ projectId }) {
                   checked={task.status === 'Done'}
                   onChange={() => handleToggleComplete(task._id, task.status)}
                 />
-              
-              
-              </Col>
-
-              <Col xs={4} className="text-end">
+              </div>
+              <div>
                 <Button
                     variant="outline-light"
                     size="sm"
@@ -201,8 +232,8 @@ function TaskList({ projectId }) {
                 >
                     <Trash size={14} />
                 </Button>
-              </Col>
-          </Row>
+              </div>
+          </div>
           </ListGroup.Item>
       ))}
       </ListGroup>
@@ -224,16 +255,6 @@ function TaskList({ projectId }) {
                 />
               </Form.Group>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Due Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={newTask.dueDate}
-                  onChange={(e) => setNewTask(prev => ({ ...prev, dueDate: e.target.value }))}
-                  className="bg-secondary text-light"
-                />
-              </Form.Group>
-
               <Form.Group className="mb-4">
                 <Form.Label>Priority</Form.Label>
                 <Form.Select
@@ -246,6 +267,47 @@ function TaskList({ projectId }) {
                   <option value="High">High</option>
                 </Form.Select>
               </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Due Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={newTask.dueDate}
+                  onChange={(e) => setNewTask(prev => ({ ...prev, dueDate: e.target.value }))}
+                  className="bg-secondary text-light"
+                />
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Task Type</Form.Label>
+                <Form.Select
+                  value={newTask.type}
+                  onChange={(e) => setNewTask((prev) => ({ ...prev, type: e.target.value }))}
+                  className="bg-secondary text-light"
+                >
+                  <option value="New Feature">New Feature</option>
+                  <option value="Enhancement">Enhancement</option>
+                  <option value="Bug">Bug</option>
+                </Form.Select>
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Estimated Points</Form.Label>
+                <Form.Select
+                  value={newTask.points}
+                  onChange={(e) =>
+                    setNewTask((prev) => ({ ...prev, points: parseInt(e.target.value) }))
+                  }
+                  className="bg-secondary text-light"
+                >
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="5">5</option>
+                  <option value="8">8</option>
+                </Form.Select>
+              </Form.Group>
+
               <Form.Group controlId="taskNotes" className="mb-3">
                 <Form.Label>Notes</Form.Label>
                 <Form.Control
@@ -259,6 +321,7 @@ function TaskList({ projectId }) {
                   className="bg-secondary text-light"
                 />
               </Form.Group>
+              
               <Card.Footer className="bg-secondary border-0">
                 <div className="d-flex justify-content-center">
                   <Button type="submit" variant="success" className="w-50">

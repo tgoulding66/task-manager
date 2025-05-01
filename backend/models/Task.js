@@ -46,7 +46,17 @@ const taskSchema = new mongoose.Schema({
       title: { type: String, required: true },
       completed: { type: Boolean, default: false },
     }
-  ],  
+  ],
+  type: {
+    type: String,
+    enum: ['New Feature', 'Enhancement', 'Bug'],
+    default: 'New Feature'
+  },
+  points: {
+    type: Number,
+    default: 0
+  },
+    
 }, { timestamps: true });
 
 module.exports = mongoose.model('Task', taskSchema);

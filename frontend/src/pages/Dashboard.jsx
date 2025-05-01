@@ -12,6 +12,7 @@ function Dashboard() {
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDesc, setNewProjectDesc] = useState(''); 
   const [newProjectDueDate, setNewProjectDueDate] = useState('');
+  const [projectPoints, setProjectPoints] = useState({});
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -26,6 +27,32 @@ function Dashboard() {
 
     fetchProjects();
   }, []);
+
+  useEffect(() => {
+    projects.forEach((project) => {
+      const fetchProjectTasks = async () => {
+        try {
+          const { data: tasks } = await api.get(`/tasks?projectId=${project._id}`);
+  
+          const total = tasks.reduce((sum, task) => sum + (task.points || 0), 0);
+          const completed = tasks.reduce(
+            (sum, task) => sum + (task.status === 'Done' ? (task.points || 0) : 0),
+            0
+          );
+  
+          setProjectPoints((prev) => ({
+            ...prev,
+            [project._id]: { totalPoints: total, completedPoints: completed },
+          }));
+        } catch (err) {
+          console.error(`Error fetching tasks for project ${project._id}:`, err);
+        }
+      };
+  
+      fetchProjectTasks();
+    });
+  }, [projects]);
+  
 
     const handleDeleteProject = async (projectId) => {
       if (!window.confirm('Are you sure you want to delete this project?')) return;
@@ -160,6 +187,9 @@ function Dashboard() {
                         })}
                     </span>
                   )}
+                   <span className="text-muted small d-block mt-1" >
+                   Points: {projectPoints[project._id]?.completedPoints ?? 0} / {projectPoints[project._id]?.totalPoints ?? 0}
+                   </span>
                 </Card.Text>
              </Card.Body>
             </Card>

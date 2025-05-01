@@ -12,6 +12,8 @@ function TaskDetails() {
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [editedType, setEditedType] = useState('New Feature');
+  const [editedPoints, setEditedPoints] = useState(0);
   
   const [editedTitle, setEditedTitle] = useState('');
   const [editedPriority, setEditedPriority] = useState('Medium');
@@ -30,6 +32,8 @@ function TaskDetails() {
         setEditedDueDate(data.dueDate?.split('T')[0] || '');
         setEditedNotes(data.notes || '');
         setProjectId(data.project);
+        setEditedType(data.type || 'New Feature');
+        setEditedPoints(data.points || 0);
       } catch (err) {
         console.error('Error fetching task:', err);
         setError('Failed to load task.');
@@ -52,9 +56,11 @@ function TaskDetails() {
         priority: editedPriority,
         dueDate: editedDueDate || null,
         notes: editedNotes,
+        type: editedType,
+        points: editedPoints,
       });
       showToast('Task updated successfully!', 'success');
-      //navigate('/'); // or navigate back to project details
+      
     } catch (err) {
       console.error('Error updating task:', err);
       showToast('Failed to update task.', 'danger');
@@ -153,6 +159,34 @@ function TaskDetails() {
                   </Form.Group>
 
                   <Form.Group className="mb-3">
+                    <Form.Label>Task Type</Form.Label>
+                    <Form.Select
+                      value={editedType}
+                      onChange={(e) => setEditedType(e.target.value)}
+                      className="bg-secondary text-light"
+                    >
+                      <option value="New Feature">New Feature</option>
+                      <option value="Enhancement">Enhancement</option>
+                      <option value="Bug">Bug</option>
+                    </Form.Select>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Estimated Points</Form.Label>
+                    <Form.Select
+                      value={editedPoints}
+                      onChange={(e) => setEditedPoints(parseInt(e.target.value))}
+                      className="bg-secondary text-light"
+                    >
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="5">5</option>
+                      <option value="8">8</option>
+                    </Form.Select>
+                  </Form.Group>
+
+                  <Form.Group className="mb-3">
                     <Form.Label>Notes</Form.Label>
                     <Form.Control
                       as="textarea"
@@ -174,7 +208,7 @@ function TaskDetails() {
                   </div>
                 </Form>
 
-                {/* ✅ Subtask List Display */}
+                {/* Subtask List Display */}
                 <hr />
                 <h5 className="mt-4">Subtasks</h5>
 
