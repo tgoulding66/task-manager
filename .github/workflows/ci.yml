@@ -12,11 +12,11 @@ jobs:
 
     services:
       mongo:
-        image: mongo:4.4
+        image: mongo:4.2
         ports:
           - 27017:27017
         options: >-
-          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'" 
+          --health-cmd "mongo --eval 'db.adminCommand(\"ping\")'" 
           --health-interval 10s 
           --health-timeout 5s 
           --health-retries 5
@@ -36,6 +36,15 @@ jobs:
 
       - name: Install dependencies
         run: npm install --prefix backend
+
+      - name: Wait for MongoDB
+        run: |
+          for i in {1..30}; do
+            nc -z localhost 27017 && echo "MongoDB is up!" && exit 0
+            echo "Waiting for MongoDB..."
+            sleep 2
+          done
+          echo "MongoDB did not start in time" && exit 1
 
       - name: Run backend tests
         run: npm test --prefix backend
