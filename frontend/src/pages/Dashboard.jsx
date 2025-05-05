@@ -4,7 +4,7 @@ import api from '../services/api';
 import { Trash } from 'react-bootstrap-icons';
 import { Link } from 'react-router-dom';  
 import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
-//import { format } from 'date-fns';
+
 
 function Dashboard() {
   const [projects, setProjects] = useState([]);
@@ -29,28 +29,28 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
-    projects.forEach((project) => {
-      const fetchProjectTasks = async () => {
+    const fetchPointsForProjects = async () => {
+      const updatedPoints = {};
+  
+      for (const project of projects) {
         try {
-          const { data: tasks } = await api.get(`/tasks?projectId=${project._id}`);
-  
-          const total = tasks.reduce((sum, task) => sum + (task.points || 0), 0);
-          const completed = tasks.reduce(
-            (sum, task) => sum + (task.status === 'Done' ? (task.points || 0) : 0),
-            0
-          );
-  
-          setProjectPoints((prev) => ({
-            ...prev,
-            [project._id]: { totalPoints: total, completedPoints: completed },
-          }));
+          const { data } = await api.get(`/projects/${project._id}/points`);
+          updatedPoints[project._id] = {
+            totalPoints: data.totalPoints,
+            completedPoints: data.completedPoints,
+          };
         } catch (err) {
-          console.error(`Error fetching tasks for project ${project._id}:`, err);
+          console.error(`Error fetching points for project ${project._id}:`, err);
+          updatedPoints[project._id] = { totalPoints: 0, completedPoints: 0 }; // fallback
         }
-      };
+      }
   
-      fetchProjectTasks();
-    });
+      setProjectPoints(updatedPoints);
+    };
+  
+    if (projects.length > 0) {
+      fetchPointsForProjects();
+    }
   }, [projects]);
   
 

@@ -7,11 +7,6 @@ const testRoute = (req, res) => {
   };
 
 // Register new user
-// This is a POST request that registers a new user.
-// It takes the name, email, and password from the request body.
-// It then creates a new user with the name, email, and password.
-// It then returns the new user.
-
 const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -36,20 +31,15 @@ const registerUser = async (req, res) => {
 };
 
 // Login existing user
-// This is a POST request that logs in an existing user.
-// It takes the email and password from the request body.
-// It then checks if the user exists and if the password is correct.
-// If the user exists and the password is correct, it then returns the user.
-
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
