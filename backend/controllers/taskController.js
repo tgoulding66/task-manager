@@ -2,12 +2,13 @@ const Task = require('../models/Task');
 
 // Create a task
 const createTask = async (req, res) => {
-  const { title, description, status, projectId, dueDate, priority, subtasks, type, points } = req.body;
+  console.log('Incoming task creation payload:', req.body);
+ 
+  const { title, status, projectId, dueDate, priority, subtasks, type, points, notes  } = req.body;
 
   try {
     const task = await Task.create({
       title,
-      description,
       status,
       dueDate,
       priority,
@@ -16,6 +17,7 @@ const createTask = async (req, res) => {
       subtasks: subtasks || [],
       type,
       points,
+      notes
     });
 
     res.status(201).json(task);
@@ -63,14 +65,13 @@ const getTasks = async (req, res) => {
 // Update a task
 const updateTask = async (req, res) => {
   const { id } = req.params;
-  const { title, description, status, completed, priority, dueDate, notes, subtasks, type, points } = req.body;
+  const { title, status, completed, priority, dueDate, notes, subtasks, type, points } = req.body;
 
   try {
     const task = await Task.findOne({ _id: id, user: req.user.id });
     if (!task) return res.status(404).json({ message: 'Task not found' });
 
     if (title !== undefined) task.title = title;
-    if (description !== undefined) task.description = description;
     if (status !== undefined) task.status = status;
     if (completed !== undefined) task.completed = completed;
     if (priority !== undefined) task.priority = priority;

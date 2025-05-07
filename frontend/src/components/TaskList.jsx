@@ -15,7 +15,7 @@ function TaskList({ projectId, onTotalPointsChange, onCompletedPointsChange }) {
     priority: 'Medium',
     notes: '',
     type: 'New Feature',
-    points: 0,
+    points: 1,
     });
   
   const totalPoints = tasks.reduce((sum, task) => sum + (task.points || 0), 0);
@@ -72,9 +72,10 @@ function TaskList({ projectId, onTotalPointsChange, onCompletedPointsChange }) {
       points: newTask.points,
       projectId,
     };
-  
+    console.log('taskToSubmit payload:', taskToSubmit);
+
     // Reset BEFORE fetchTasks() to avoid UI staleness
-    setNewTask({ title: '', dueDate: '', priority: 'Medium', notes: '', type: 'New Feature', points: 0 });
+    setNewTask({ title: '', dueDate: '', priority: 'Medium', notes: '', type: 'New Feature', points: 1 });
   
     try {
       await api.post('/tasks', taskToSubmit);

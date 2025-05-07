@@ -2,9 +2,6 @@ const mongoose = require('mongoose');
 
 // Task Schema
 // This ties each task to a project via the project field.
-// It also has a title, description, status, and timestamps for when the task was created and updated.
-// The user field is a reference to the User model.
-// The timestamps field is a boolean that specifies whether to add createdAt and updatedAt fields to the schema.
 
 const taskSchema = new mongoose.Schema({
   title: {
