@@ -1,0 +1,30 @@
+{
+  "name": "task-manager-pro",
+  "version": "2.0.0",
+  "description": "A modern, full-featured task management application built with MERN stack",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "client:dev": "cd frontend && npm run dev",
+    "server:dev": "cd backend && npm run dev",
+    "client:build": "cd frontend && npm run build",
+    "server:start": "cd backend && npm start",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "test": "cd backend && npm test && cd ../frontend && npm test",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up",
+    "docker:prod": "docker-compose up"
+  },
+  "keywords": [
+    "task-manager",
+    "mern",
+    "react",
+    "nodejs",
+    "mongodb",
+    "typescript"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+} 

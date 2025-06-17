@@ -35,7 +35,7 @@ function Login() {
     <Container className="mt-5">
       <Row className="justify-content-md-center">
         <Col md={6}>
-          <Card>
+          <Card className="shadow-sm h-100 rounded-3 border-1 bg-secondary text-light">
             <Card.Body>
               <h2 className="mb-4 text-center">Login</h2>
               {error && <Alert variant="danger">{error}</Alert>}
@@ -50,6 +50,7 @@ function Login() {
                     onChange={handleChange}
                     placeholder="Enter email"
                     required
+                    className="bg-secondary text-light"
                   />
                 </Form.Group>
 
@@ -62,6 +63,7 @@ function Login() {
                     onChange={handleChange}
                     placeholder="Password"
                     required
+                    className="bg-secondary text-light"
                   />
                 </Form.Group>
 

@@ -2,9 +2,7 @@ const Task = require('../models/Task');
 
 // Create a task
 const createTask = async (req, res) => {
-  console.log('Incoming task creation payload:', req.body);
- 
-  const { title, status, projectId, dueDate, priority, subtasks, type, points, notes  } = req.body;
+ const { title, status, projectId, dueDate, priority, subtasks, type, points, notes  } = req.body;
 
   try {
     const task = await Task.create({
